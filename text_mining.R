@@ -18,12 +18,12 @@ ukrainewar_tweets <-
     '-filter' = 'replies')
 
 
-head(worldcup_tweets)
+head(ukrainewar_tweets)
     
 
 # remove http elements manually
-worldcup_tweets$text <- gsub("http.*","",  worldcup_tweets$text)
-worldcup_tweets$text <- gsub("https.*","", worldcup_tweets$text)
+ukrainewar_tweets$text <- gsub("http.*","",  ukrainewar_tweets$text)
+ukrainewar_tweets$text <- gsub("https.*","", ukrainewar_tweets$text)
 
 
 
@@ -36,8 +36,8 @@ library(tokenizers)# count_words
 
 
 
-worldcup_tweet_id <-
-  worldcup_tweets %>%
+ukrainewar_tweet_id <-
+  ukrainewar_tweets %>%
   mutate(
     # remove links
     text = str_remove_all(text, "https\\S*"),
@@ -67,14 +67,14 @@ worldcup_tweet_id <-
 
 
 # remove punctuation, convert to lowercase, add id for each tweet!
-worldcup_tweet_clean <- worldcup_tweet_id %>%
+ukrainewar_tweet_clean <- ukrainewar_tweet_id %>%
   dplyr::select(id, text) %>%
   unnest_tokens(word, text)
 
 
 
 # plot the top 20 words
-worldcup_tweet_clean %>%
+ukrainewar_tweet_clean %>%
 count(word, sort = TRUE) %>%
   top_n(20) %>%
   mutate(word = reorder(word, n)) %>%
@@ -97,15 +97,15 @@ data("stop_words")
 head(stop_words, 10)
 
 # remove stop words from your list of words
-worldcup_tweet_words <- worldcup_tweet_clean %>%
+ukrainewar_tweet_words <- ukrainewar_tweet_clean %>%
   anti_join(stop_words)
 
-nrow(worldcup_tweet_words)
+nrow(ukrainewar_tweet_words)
 
 
 
 # plot the top 10 words -- notice any issues?
-worldcup_tweet_words %>%
+ukrainewar_tweet_words %>%
 count(word, sort = TRUE) %>%
   top_n(10) %>%
   mutate(word = reorder(word, n)) %>%
@@ -124,13 +124,13 @@ custom_stop_words <-
 
 
 
-worldcup_tweet_words2 <- worldcup_tweet_clean %>%
+ukrainewar_tweet_words2 <- ukrainewar_tweet_clean %>%
   anti_join(stop_words)%>%
   anti_join(custom_stop_words)
 
 
 
-worldcup_tweet_words2 %>%
+ukrainewar_tweet_words2 %>%
   count(word, sort = TRUE) %>%
   top_n(10) %>%
   mutate(word = reorder(word, n)) %>%
@@ -145,7 +145,7 @@ worldcup_tweet_words2 %>%
 
 
 #add sentiment to each word with both qualitative and quantitative approach. 
-worldcup_tweets_sent <- worldcup_tweet_words2%>%
+ukrainewar_tweets_sent <- ukrainewar_tweet_words2%>%
   left_join(get_sentiments("afinn"))%>%
   left_join(get_sentiments("bing"))
 
@@ -153,7 +153,7 @@ worldcup_tweets_sent <- worldcup_tweet_words2%>%
 
 library(wordcloud) 
 library(reshape2)
-worldcup_tweet_words2%>%
+ukrainewar_tweet_words2%>%
   inner_join(get_sentiments("bing")) %>%
   count(word, sentiment,sort = TRUE) %>%
   acast(word ~ sentiment, value.var = "n", fill = 0) %>%
@@ -166,8 +166,8 @@ worldcup_tweet_words2%>%
 
 get_sentiments("afinn") %>% filter(value > 4)
 
-worldcup_tweet_words2_afinn <- 
-  worldcup_tweet_words2 %>%
+ukrainewar_tweet_words2_afinn <- 
+  ukrainewar_tweet_words2 %>%
   left_join(get_sentiments("afinn"), by = "word")
 
 
@@ -175,11 +175,11 @@ worldcup_tweet_words2_afinn <-
 
 library(vader)
 
-vader_sent <- vader_df(worldcup_tweet_words2$word)
+ukrainewar_vader <- vader_df(ukrainewar_tweet_words2$word)
 
 
-vader_sent2 <- 
-  vader_sent %>%
+ukrainewar_vader_2 <- 
+  ukrainewar_vader %>%
   rowid_to_column("id")%>%
   select(id, text, compound)%>%
   mutate(
@@ -191,8 +191,8 @@ vader_sent2 <-
   )
 
 
-vader_sent2 %>%
-  group_by(vader_sent)%>%
+ukrainewar_vader_2 %>%
+  group_by(ukrainewar_vader)%>%
   summarize(AMT = n(), sent = sum(compound))
 
 
