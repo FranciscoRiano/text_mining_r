@@ -120,7 +120,7 @@ count(word, sort = TRUE) %>%
 
 #create a customized list of stopwords different from the words contained in the standarized list
 custom_stop_words <- 
-  tibble(word = c('qatar2022', 'qatar', 'og', 'futbol', 'cup', 'worldcup', 'indvsaus', 'team', 'teams', 'fifa','world'))
+  tibble(word = c('russia', 'ukraine', 'war'))
 
 
 
