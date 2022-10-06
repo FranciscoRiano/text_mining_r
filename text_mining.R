@@ -9,9 +9,9 @@ library(dplyr)
 # text mining library
 library(tidytext)
 
-worldcup_tweets <-
+ukrainewar_tweets <-
   search_tweets(
-    "#worldcup2022",
+    "#ukrainewar",
     n = 5000,
     include_rts = FALSE,
     lang = 'en',
