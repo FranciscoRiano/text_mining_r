@@ -115,7 +115,7 @@ count(word, sort = TRUE) %>%
   coord_flip() +
   labs(y = "Count",
        x = "Unique words",
-       title = "Count of top 10 unique words found in #worldcup 2022 tweets",
+       title = "Count of top 10 unique words found in #ukraine tweets",
        subtitle = "Stop words removed from the list")
 
 #create a customized list of stopwords different from the words contained in the standarized list
@@ -140,7 +140,7 @@ ukrainewar_tweet_words2 %>%
   coord_flip() +
   labs(y = "Count",
        x = "Unique words",
-       title = "Count of top 10 unique words found in #worldcup 2022 tweets",
+       title = "Count of top 10 unique words found in #ukraine war tweets",
        subtitle = "Stop words removed from the list")
 
 
