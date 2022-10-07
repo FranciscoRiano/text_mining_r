@@ -33,7 +33,7 @@ ukrainewar_tweets$text <- gsub("https.*","", ukrainewar_tweets$text)
 library(tibble) # rownames_to_column
 library(stringr) # str_remove_all
 library(tokenizers)# count_words
-
+library(dplyr) # separate columns 
 
 
 ukrainewar_tweet_id <-
@@ -65,6 +65,11 @@ ukrainewar_tweet_id <-
   rownames_to_column("id")
 
 
+#make sure to keep the date format without the time, just y/m/d
+ukrainewar_tweet_id$created_at <- 
+ stringr::str_split_fixed(ukrainewar_tweet_id$created_at, " ", 2)
+
+
 
 # remove punctuation, convert to lowercase, add id for each tweet!
 ukrainewar_tweet_clean <- ukrainewar_tweet_id %>%
@@ -84,7 +89,7 @@ count(word, sort = TRUE) %>%
   coord_flip() +
   labs(x = "Count",
        y = "Unique words",
-       title = "Count of unique words found in #worldcup2022 tweets")
+       title = "Count of unique words found in #ukraine war tweets")
 
 
 
@@ -120,7 +125,8 @@ count(word, sort = TRUE) %>%
 
 #create a customized list of stopwords different from the words contained in the standarized list
 custom_stop_words <- 
-  tibble(word = c('russia', 'ukraine', 'war'))
+  tibble(word = c('russia', 'ukraine', 'war', 'ukrainewar', 'ukrainerussiawar', 'russian', 'ukrainian', 'ukrainerussianwar', 'russiaukrainewar',
+                  'russians', 'ukrainians'))
 
 
 
@@ -129,6 +135,7 @@ ukrainewar_tweet_words2 <- ukrainewar_tweet_clean %>%
   anti_join(custom_stop_words)
 
 
+#let's plot the top 10 words again but without the custom stopwords
 
 ukrainewar_tweet_words2 %>%
   count(word, sort = TRUE) %>%
@@ -140,8 +147,11 @@ ukrainewar_tweet_words2 %>%
   coord_flip() +
   labs(y = "Count",
        x = "Unique words",
-       title = "Count of top 10 unique words found in #ukraine war tweets",
+       title = "Count of top 10 unique words found in #ukraine tweets",
        subtitle = "Stop words removed from the list")
+
+
+
 
 
 #add sentiment to each word with both qualitative and quantitative approach. 
@@ -191,13 +201,53 @@ ukrainewar_vader_2 <-
   )
 
 
+
 ukrainewar_vader_2 %>%
-  group_by(ukrainewar_vader)%>%
+  group_by(vader_sent)%>%
   summarize(AMT = n(), sent = sum(compound))
 
 
 
+#lets plot a boxplot with the sentiment score on each of the three categories created
+
+boxplot(compound ~ vader_sent,
+        data = ukrainewar_vader_2,
+        main = "Perceived purchase frequency by Label",
+        xlab = "Label",
+        ylab = "Perceived purchase frequency (log1p)",
+        col = "steelblue",
+        border = "black")
 
 
+
+
+#Create a new data set just with words with positive or negative sentiment 
+
+ukrainewar_vader_3 <- ukrainewar_vader_2 %>%
+  filter(vader_sent != "neutral")
+ 
+
+
+ukrainewar_vader_4 <- ukrainewar_vader_3 %>%
+  count(text, sort = TRUE) %>%
+  top_n(10)
+
+
+ukrainewar_vader_5 <- ukrainewar_vader_4 %>%
+  inner_join(ukrainewar_vader_3, by = "text")%>%
+  select(-id)
+
+
+ukrainewar_vader_6 <- test[!duplicated(test$text), ]
+
+
+
+ggplot() +
+  geom_col(data = ukrainewar_vader_6, aes(x = text, y = n, fill = vader_sent)) +
+  coord_flip() +
+  labs(y = "Count",
+       x = "Unique words",
+       title = "Count of top 10 unique words found in #ukraine tweets",
+       subtitle = "Stop words removed from the list")
 
 
