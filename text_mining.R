@@ -71,6 +71,15 @@ ukrainewar_tweet_id$created_at <-
 
 
 
+#we can create a histogram based on the number of word on the tweets in order to see its distribution. 
+ukrainewar_tweet_id %>%
+  ggplot()+
+  geom_histogram(
+    aes(x = display_text_width)
+  ) + scale_x_continuous(trans = 'log1p')
+
+
+
 # remove punctuation, convert to lowercase, add id for each tweet!
 ukrainewar_tweet_clean <- ukrainewar_tweet_id %>%
   dplyr::select(id, text) %>%
@@ -249,5 +258,7 @@ ggplot() +
        x = "Unique words",
        title = "Count of top 10 unique words found in #ukraine tweets",
        subtitle = "Stop words removed from the list")
+
+
 
 
