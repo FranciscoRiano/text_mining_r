@@ -8,6 +8,17 @@ library(ggplot2)
 library(dplyr)
 # text mining library
 library(tidytext)
+# remove text junk
+
+library(tibble) # rownames_to_column
+library(stringr) # str_remove_all
+library(tokenizers)# count_words
+library(dplyr) # separate columns 
+#vader lexicon 
+library(vader)
+
+
+
 
 ukrainewar_tweets <-
   search_tweets(
@@ -24,16 +35,6 @@ head(ukrainewar_tweets)
 # remove http elements manually
 ukrainewar_tweets$text <- gsub("http.*","",  ukrainewar_tweets$text)
 ukrainewar_tweets$text <- gsub("https.*","", ukrainewar_tweets$text)
-
-
-
-
-# remove text junk
-
-library(tibble) # rownames_to_column
-library(stringr) # str_remove_all
-library(tokenizers)# count_words
-library(dplyr) # separate columns 
 
 
 ukrainewar_tweet_id <-
@@ -74,9 +75,13 @@ ukrainewar_tweet_id$created_at <-
 #we can create a histogram based on the number of word on the tweets in order to see its distribution. 
 ukrainewar_tweet_id %>%
   ggplot()+
-  geom_histogram(
+  geom_histogram(color = "black", fill = "red",
     aes(x = display_text_width)
-  ) + scale_x_continuous(trans = 'log1p')
+  ) + scale_x_continuous(trans = 'log1p')+
+  labs(x = "Number of words in tweets",
+       y = "Number of tweets",
+       title = "Distribution #ukrainewar Tweets Based on its Number of Words")+
+  theme(panel.background = element_blank())
 
 
 
@@ -107,12 +112,11 @@ count(word, sort = TRUE) %>%
 data("stop_words")
 
 
-# view first 10 words
-head(stop_words, 10)
-
 # remove stop words from your list of words
 ukrainewar_tweet_words <- ukrainewar_tweet_clean %>%
   anti_join(stop_words)
+
+
 
 nrow(ukrainewar_tweet_words)
 
@@ -151,13 +155,15 @@ ukrainewar_tweet_words2 %>%
   top_n(10) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(x = word, y = n)) +
-  geom_col() +
+  geom_col(fill = "blue") +
   xlab(NULL) +
   coord_flip() +
   labs(y = "Count",
        x = "Unique words",
        title = "Count of top 10 unique words found in #ukraine tweets",
-       subtitle = "Stop words removed from the list")
+       subtitle = "Stop words removed from the list")+
+  theme(panel.background = element_blank())
+  
 
 
 
@@ -176,7 +182,7 @@ ukrainewar_tweet_words2%>%
   inner_join(get_sentiments("bing")) %>%
   count(word, sentiment,sort = TRUE) %>%
   acast(word ~ sentiment, value.var = "n", fill = 0) %>%
-  comparison.cloud(colors = c("blue","purple"),
+  comparison.cloud(colors = c("red","green"),
                    max.words = 150)
 
 
@@ -192,7 +198,7 @@ ukrainewar_tweet_words2_afinn <-
 
 #vader. it gives me the classification of each word by quantitative score and qualitative one as well. 
 
-library(vader)
+
 
 ukrainewar_vader <- vader_df(ukrainewar_tweet_words2$word)
 
@@ -213,7 +219,7 @@ ukrainewar_vader_2 <-
 
 ukrainewar_vader_2 %>%
   group_by(vader_sent)%>%
-  summarize(AMT = n(), sent = sum(compound))
+  summarize(AMT = n(), sent = sum(compound), AVG = mean(compound))
 
 
 
@@ -221,9 +227,9 @@ ukrainewar_vader_2 %>%
 
 boxplot(compound ~ vader_sent,
         data = ukrainewar_vader_2,
-        main = "Perceived purchase frequency by Label",
-        xlab = "Label",
-        ylab = "Perceived purchase frequency (log1p)",
+        main = "Vader Sentiment Analysis #ukrainewar",
+        xlab = "Sentiment",
+        ylab = "Sentiment Score",
         col = "steelblue",
         border = "black")
 
@@ -255,10 +261,42 @@ ggplot() +
   geom_col(data = ukrainewar_vader_6, aes(x = text, y = n, fill = vader_sent)) +
   coord_flip() +
   labs(y = "Count",
-       x = "Unique words",
-       title = "Count of top 10 unique words found in #ukraine tweets",
-       subtitle = "Stop words removed from the list")
+       x = "Unique words with +/- sentiment",
+       title = "Count of Top 10 unique +/- Words Found in #ukraine Tweets",
+       subtitle = "Stop words removed from the list") +
+  theme(panel.background = element_blank())
+  
 
 
 
 
+#compare distributions according with the sentiment of the words
+#Positive
+ukrainewar_vader_3 %>%
+  filter(vader_sent == "positive")%>%
+  ggplot()+
+  geom_histogram(color = "black", fill = "red",
+                 aes(x = compound)
+  ) + scale_x_continuous(trans = 'log1p')+
+  labs(x = "Number of words in tweets",
+       y = "Number of tweets",
+       title = "Distribution #ukrainewar Tweets Based on its Number of Words")+
+  theme(panel.background = element_blank())
+
+
+
+#Negative
+ukrainewar_vader_3 %>%
+  ggplot()+
+  geom_histogram(color = "black", fill = "vader_sent",
+                 aes(x = compound)
+  ) + scale_x_continuous(trans = 'log1p')+
+  labs(x = "Number of words in tweets",
+       y = "Number of tweets",
+       title = "Distribution #ukrainewar Tweets Based on its Number of Words")+
+  theme(panel.background = element_blank())
+
+gghistogram
+
+
+gg
