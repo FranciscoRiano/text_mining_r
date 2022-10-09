@@ -16,7 +16,9 @@ library(tokenizers)# count_words
 library(dplyr) # separate columns 
 #vader lexicon 
 library(vader)
-
+#wordcloud
+library(wordcloud) 
+library(reshape2)
 
 
 
@@ -176,8 +178,7 @@ ukrainewar_tweets_sent <- ukrainewar_tweet_words2%>%
 
 
 
-library(wordcloud) 
-library(reshape2)
+
 ukrainewar_tweet_words2%>%
   inner_join(get_sentiments("bing")) %>%
   count(word, sentiment,sort = TRUE) %>%
@@ -240,20 +241,15 @@ boxplot(compound ~ vader_sent,
 
 ukrainewar_vader_3 <- ukrainewar_vader_2 %>%
   filter(vader_sent != "neutral")
- 
-
 
 ukrainewar_vader_4 <- ukrainewar_vader_3 %>%
   count(text, sort = TRUE) %>%
-  top_n(10)
-
-
-ukrainewar_vader_5 <- ukrainewar_vader_4 %>%
+  top_n(10)%>%
   inner_join(ukrainewar_vader_3, by = "text")%>%
   select(-id)
-
-
-ukrainewar_vader_6 <- test[!duplicated(test$text), ]
+  
+ 
+ukrainewar_vader_6 <- ukrainewar_vader_4[!duplicated(ukrainewar_vader_4$text), ]
 
 
 
@@ -270,33 +266,32 @@ ggplot() +
 
 
 
-#compare distributions according with the sentiment of the words
-#Positive
-ukrainewar_vader_3 %>%
-  filter(vader_sent == "positive")%>%
-  ggplot()+
-  geom_histogram(color = "black", fill = "red",
-                 aes(x = compound)
-  ) + scale_x_continuous(trans = 'log1p')+
-  labs(x = "Number of words in tweets",
-       y = "Number of tweets",
-       title = "Distribution #ukrainewar Tweets Based on its Number of Words")+
+#compare distributions according with the sentiment of the words - combined histogram
+
+
+ggplot(ukrainewar_vader_3, aes(x = compound,  fill = vader_sent))+
+  geom_histogram(aes(y = ..density..),color = "black", alpha=0.5, position = "identity",
+  ) + geom_density(alpha = 0.5)+
+  labs(x = "Sentiment Score of Words",
+       y = "Density",
+       title = "Distribution of Sentiment for Positive and Negative Words")+
   theme(panel.background = element_blank())
 
 
 
-#Negative
-ukrainewar_vader_3 %>%
-  ggplot()+
-  geom_histogram(color = "black", fill = "vader_sent",
-                 aes(x = compound)
-  ) + scale_x_continuous(trans = 'log1p')+
-  labs(x = "Number of words in tweets",
-       y = "Number of tweets",
-       title = "Distribution #ukrainewar Tweets Based on its Number of Words")+
-  theme(panel.background = element_blank())
+#we can create a worcloud just with VADER
 
-gghistogram
+ukrainewar_vader_3%>%
+  count(text, vader_sent, sort = TRUE) %>%
+  acast(text ~ vader_sent, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("red","green"),
+                   max.words = 150)
 
 
-gg
+
+
+
+
+
+
+
